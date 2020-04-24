@@ -5,7 +5,7 @@ import signal
 import sys
 # project
 import utils
-
+import X86_HEADER
 
 
 class ELF(object):
@@ -21,4 +21,10 @@ class ELF(object):
         self.obj = obj
         # Seek to beginning
         self.obj.seek(0, 0)
-        self.header
+        self.header = X86_HEADER.FILE_HEADER(0,0,0,0,0,0,
+                                             0,0,0,0,0,0,
+                                             0,0,0,0,0,0,
+                                             0,0)
+        self.program_header = []
+        self.section_header = []
+        self.size = int()

@@ -20,11 +20,33 @@ class FILE_HEADER:
 
 
 class PROGRAM_HEADER:
-    def __init__():
-        pass
+    def __init__(self, p_type, p_flags64, p_offset,
+                 p_vaddr, p_paddr, p_filesz,
+                 p_memsz, p_flags32, p_align):
+        self.p_type = p_type
+        self.p_flags64 = p_flags64
+        self.p_offset = p_offest
+        self.p_vaddr = p_vaddr
+        self.p_paddr = p_paddr
+        self.p_filesz = p_filesz
+        self.p_memsz = p_memsz
+        self.p_flags32 = p_flags32
+        self.p_align = p_align
 
 
 class SECTION_HEADER:
-    def __init__():
-        pass
+    def __init__(self, sh_name, sh_type, sh_flags,
+                 sh_addr, sh_offset, sh_size,
+                 sh_link, sh_info, sh_addralign,
+                 sh_entsize):
+        self.sh_name = sh_name
+        self.sh_type = sh_type
+        self.sh_flags = sh_flags
+        self.sh_addr = sh_addr
+        self.sh_offset = sh_offset
+        self.sh_size = sh_size
+        self.sh_link = sh_link
+        self.sh_info = sh_info
+        self.sh_addralign = sh_addralign
+        self.sh_entsize = sh_entsize
 
