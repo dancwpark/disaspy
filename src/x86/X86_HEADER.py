@@ -16,7 +16,26 @@ class FILE_HEADER:
         Read more at: 
                    https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
         """
-        pass
+        self.ei_mag = ei_mag
+        self.ei_class = ei_class
+        self.ei_data = ei_data
+        self.ei_version = ei_version
+        self.ei_osabi = ei_osabi
+        self.ei_abiversion = ei_abiversion
+        self.ei_pad = ei_pad
+        self.e_type = e_type
+        self.e_machine = e_machine
+        self.e_version = e_version
+        self.e_entry = e_entry
+        self.e_phoff = e_phoff
+        self.e_shoff = e_shoff
+        self.e_flags = e_flags
+        self.e_ehsize = e_ehsize
+        self.e_phentsize = e_phentsize
+        self.e_phnum = e_phnum
+        self.e_shentsize = e_shentsize
+        self.e_shnum = e_shnum
+        self.e_shstrndx = e_shstrndx
 
 
 class PROGRAM_HEADER:
