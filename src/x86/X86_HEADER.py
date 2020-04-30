@@ -53,6 +53,7 @@ class PROGRAM_HEADER:
         self.p_align = p_align
 
 
+# SECTION STUFF
 class SECTION_HEADER:
     def __init__(self, sh_name, sh_type, sh_flags,
                  sh_addr, sh_offset, sh_size,
@@ -68,4 +69,38 @@ class SECTION_HEADER:
         self.sh_info = sh_info
         self.sh_addralign = sh_addralign
         self.sh_entsize = sh_entsize
-
+class SH_TYPE:                                                                  
+    SHT_NULL = 0x0                                                              
+    SHT_PROGBITS = 0x1                                                          
+    SHT_SYMTAB = 0x2                                                            
+    SHT_STRTAB = 0x3                                                            
+    SHT_RELA = 0x4                                                              
+    SHT_HASH = 0x5                                                              
+    SHT_DYNAMIC = 0x6                                                           
+    SHT_NOTE = 0x7                                                              
+    SHT_NOBITS = 0x8                                                            
+    SHT_REL = 0x9                                                               
+    SHT_SHLIB = 0xa                                                             
+    SHT_DYNSYM = 0xb                                                            
+    SHT_INIT_ARRAY = 0xe                                                        
+    SHT_FINI_ARRAY = 0xf                                                        
+    SHT_PREINIT = 0x10                                                          
+    SHT_GROUP = 0x11                                                            
+    SHT_SYMTAB_SHNDX = 0x12                                                     
+    SHT_NUM = 0x13                                                              
+    SHT_LOOS = 0x60000000                                                       
+    GNU_HASH = 0x6ffffff6                                                       
+    VERSYM = 0x6fffffff                                                         
+    VERNEED = 0x6ffffffe 
+class SYMTAB_ENTRY64():
+    def __init__(self, st_name, st_info, st_other, 
+                 st_shndx, st_value, st_size,
+                 st_bind, st_type):
+        self.st_name = st_name
+        self.st_info = st_info
+        self.st_other = st_other
+        self.st_shndx = st_shndx
+        self.st_value = st_value
+        self.st_size = st_size
+        self.st_bind = st_bind
+        self.st_type = st_type

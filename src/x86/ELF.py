@@ -117,6 +117,7 @@ class ELF(object):
                             self.string_tb_dyn)
                     offset += 24
         pass
+        # TODO: HERE
                 
 
     def read_header(self, size):
@@ -200,5 +201,11 @@ class ELF(object):
 
     def read_symtab_entry(self, symtab, entries):
         tmp = SYMTAB_ENTRY64(0,0,0,0,0,0,0,0)
-        pass
-        #TODO:Make SYMTAB_ENTRY64 class in X86_HEADER 
+        tmp.st_name = symtab[0:4]
+        tmp.st_info = symtabl[4:5]
+        tmp.st_other = symtab[5:6]
+        tmp.st_shndx = symtab[6:8]
+        tmp.st_value = symtab[8:16]
+        tmp.st_size = symtab[16:24]
+        tmp.st_bind = byte2int(tmp.st_info >> 4
+        tmp.st_type = byte2int(tmp.st_info) & 0x0f
