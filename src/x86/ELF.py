@@ -7,31 +7,6 @@ import sys
 from utils import *
 from X86_HEADER import *
 
-# TODO: Move SH_TYPE to X86_HEADER
-class SH_TYPE:
-    SHT_NULL = 0x0
-    SHT_PROGBITS = 0x1
-    SHT_SYMTAB = 0x2
-    SHT_STRTAB = 0x3
-    SHT_RELA = 0x4
-    SHT_HASH = 0x5
-    SHT_DYNAMIC = 0x6
-    SHT_NOTE = 0x7
-    SHT_NOBITS = 0x8
-    SHT_REL = 0x9
-    SHT_SHLIB = 0xa
-    SHT_DYNSYM = 0xb
-    SHT_INIT_ARRAY = 0xe
-    SHT_FINI_ARRAY = 0xf
-    SHT_PREINIT = 0x10
-    SHT_GROUP = 0x11
-    SHT_SYMTAB_SHNDX = 0x12
-    SHT_NUM = 0x13
-    SHT_LOOS = 0x60000000
-    GNU_HASH = 0x6ffffff6
-    VERSYM = 0x6fffffff
-    VERNEED = 0x6ffffffe
-
 class ELF(object):
     def __init__(self, obj):
         """
@@ -58,22 +33,22 @@ class ELF(object):
         self.data_section = []
         self.text_section = []
         self.dlpath = str()
-        self.ph_dyn_ent = []
+        self.ph_dyn_entries = []
         self.dyn_section = []
-        self.dyn_section_ends = []
+        self.dyn_section_entries = []
         self.rela_dyn = []
-        self.rela_dyn_ents = []
+        self.rela_dyn_entries = []
         self.rela_plt = []
-        self.rela_plt_ents = []
+        self.rela_plt_entries = []
         self.rodata = []
         self.plt = []
         self.got = []
         self.got_plt = []
         self.plt_got = []
         self.plt_ents = []
-        self.plt_got_ents = []
+        self.plt_got_entries = []
         self.got_ents = []
-        self.got_plt_ents = []
+        self.got_plt_entries = []
 
     def initialize(self, size):
         assert type(size) is int
@@ -117,8 +92,16 @@ class ELF(object):
                             self.string_tb_dyn)
                     offset += 24
         pass
-        # TODO: HERE
-                
+       
+        self.pop_data_section()
+        # TODO: the below funcs need to be written
+        self.pop_text_section()
+        self.get_program_header_dynamic_entries(".dynamic", 
+                self.dynamic_section_entries)
+        self.pop_rela(".rela.plt", self.rela_plt, self.rela_plt_entries)
+        self.pop_rela(".rela.dyn", self.rela_dyn, self.rela_dyn_entries)
+
+
 
     def read_header(self, size):
         """ 
@@ -207,5 +190,26 @@ class ELF(object):
         tmp.st_shndx = symtab[6:8]
         tmp.st_value = symtab[8:16]
         tmp.st_size = symtab[16:24]
-        tmp.st_bind = byte2int(tmp.st_info >> 4
+        tmp.st_bind = byte2int(tmp.st_info) >> 4
         tmp.st_type = byte2int(tmp.st_info) & 0x0f
+
+    def read_section_name(self, index):
+        shstrtab_ndx = byte2int(self.header.e_shstrndx)
+        name = ""
+        self.obj.seek(byte2int(self.section_header[shstrtab_ndx].sh_offset),
+                0)
+        strs = self.obj.readd(byte2int(
+            self.section_header[shstrtab_ndx].sh_size))
+        c = strs[index]
+        while chr(c) != '\0':
+            index += 1
+            name += chr(c)
+            c = strs[index]
+        return name
+
+    def pop_data_section(self):
+        for section in self.section_header:
+            name = self.read_section_name(byte2int(section.sh_name))
+            if name == '.data':
+                self.obj.seek(byte2int(section.sh_offset))
+                self.data_section = self.obj.read(byte2int(section.sh_name))
