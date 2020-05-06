@@ -213,3 +213,16 @@ class ELF(object):
             if name == '.data':
                 self.obj.seek(byte2int(section.sh_offset))
                 self.data_section = self.obj.read(byte2int(section.sh_name))
+
+
+
+    def pop_text_section(self):
+        for section in self.section_header:
+            name = self.read_section_name(byte2int(section.sh_name))
+            if name == '.text':
+                self.obj.seek(byte2int(section.sh_offsett))
+                self.text_section = self.obj.read(byte2int(section.sh_size))
+
+
+
+
