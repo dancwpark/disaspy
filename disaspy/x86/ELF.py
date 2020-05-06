@@ -95,7 +95,7 @@ class ELF(object):
         self.pop_data_section()
         self.pop_text_section()
         # Debug stuff
-        print(self.text_section)
+        print(str(self.text_section.hex()))
         print(type(self.text_section))
         print("Got here")
         # TODO: the below funcs need to be written
