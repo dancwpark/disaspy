@@ -69,6 +69,7 @@ class SECTION_HEADER:
         self.sh_info = sh_info
         self.sh_addralign = sh_addralign
         self.sh_entsize = sh_entsize
+
 class SH_TYPE:                                                                  
     SHT_NULL = 0x0                                                              
     SHT_PROGBITS = 0x1                                                          
@@ -92,6 +93,7 @@ class SH_TYPE:
     GNU_HASH = 0x6ffffff6                                                       
     VERSYM = 0x6fffffff                                                         
     VERNEED = 0x6ffffffe 
+    
 class SYMTAB_ENTRY64():
     def __init__(self, st_name, st_info, st_other, 
                  st_shndx, st_value, st_size,

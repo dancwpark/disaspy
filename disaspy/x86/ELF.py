@@ -6,6 +6,7 @@ import sys
 # project
 from disaspy.x86.Utils import *
 from disaspy.x86.X86_HEADER import *
+from disaspy.ELF_TYPES import *
 
 class ELF(object):
     def __init__(self, obj):
@@ -98,13 +99,13 @@ class ELF(object):
         print(str(self.text_section.hex()))
         print(type(self.text_section))
         print("Got here")
-        # TODO: the below funcs need to be written
-        '''
+        input()
+        # end Debug stuff
         self.get_program_header_dynamic_entries(".dynamic", 
                 self.dynamic_section_entries)
         self.pop_rela(".rela.plt", self.rela_plt, self.rela_plt_entries)
         self.pop_rela(".rela.dyn", self.rela_dyn, self.rela_dyn_entries)
-        '''
+
 
 
     def read_header(self, size):
@@ -225,6 +226,40 @@ class ELF(object):
                 self.obj.seek(byte2int(section.sh_offset))
                 self.text_section = self.obj.read(byte2int(section.sh_size))
 
+    def get_program_header_dynamic_entries(self):
+        size = 0
+        for program_header in self.program_header:
+            if byte2int(phdr.p_type) == p_type.PT_DYNAMIC:
+                self.obj.seek(byte2int(program_header.p_offset), 0)
+                size = byte2int(program_header.p_filesz)
+                program_header_dyn = self.obj.read(size)
+        for i in range(int(size/8)):
+             d_tag = byte2int(program_header_dyn[8*i:8*i+4])
+             d_un = byte2int(program_header_dyn[8*i + 4 : 8*i + 8])
+             self.ph_dyn_entries.append(program_header_dynamic_entry(d_tag, d_un))
 
+    def pop_rela(self, section_name, section_content, pop_target):
+        size = int()
+        entsize = int()
+        tmp = {}
+        step = int()
+        if self.size == 64:
+            step = 8
+        elif self.size == 32:
+            step = 4
+        for section in self.section_header:
+            name = self.read_section_name(byte2int(section.sh_name))
+            if name == section_name:
+                self.so.seek(byte2int(section.sh_offset))
+                section_content = self.obj.read(byte2int(section.sh_size))
+                size = byte2int(section.sh_size)
+                entsize = byte2int(section.sh_entsize)
+        if entsize != 0:
+            for i in range(0, int(size/entsize)):
+                tmp["r_offset"] = byte2int(section_content[i*entsize:i*entsize+step])
+                tmp["r_info"] = byte2int(section_content[i*entsize+step:i*entsize+(step*2)])
+                tmp["r_append"] = byte2int(section_content[i*entsize+(step*2):i*entsize+(step*3)], sign=True)
+                pop_target.append(tmp)
+                tmp = {}
 
 
