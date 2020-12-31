@@ -1,12 +1,10 @@
-from capstone import *
-from capstone.x86 import *
 import code
 import signal
 import sys
 # project
 from disaspy.x86.Utils import *
 from disaspy.x86.X86_HEADER import *
-from disaspy.ELF_TYPES import *
+from disaspy.x86.ELF_TYPES import *
 
 class ELF(object):
     def __init__(self, obj):
@@ -96,13 +94,14 @@ class ELF(object):
         self.pop_data_section()
         self.pop_text_section()
         # Debug stuff
-        print(str(self.text_section.hex()))
-        print(type(self.text_section))
-        print("Got here")
-        input()
+        # print(str(self.text_section.hex()))
+        # print(type(self.text_section))
+        # print("Got here")
+        # input()
         # end Debug stuff
-        self.get_program_header_dynamic_entries(".dynamic", 
-                self.dynamic_section_entries)
+        self.get_program_header_dynamic_entries()
+        self.pop_dynamic_entries(".dynamic", 
+                self.dyn_section_entries)
         self.pop_rela(".rela.plt", self.rela_plt, self.rela_plt_entries)
         self.pop_rela(".rela.dyn", self.rela_dyn, self.rela_dyn_entries)
 
@@ -124,11 +123,11 @@ class ELF(object):
         self.header.e_machine = self.obj.read(2)
         self.header.e_version = self.obj.read(4)
         # e_entry, e_phoff, e_shoff depend on size: 32 vs 64
-        if size is 32:
+        if size == 32:
             self.header.e_entry = self.obj.read(4)
             self.header.e_phoff = self.obj.read(4)
             self.header.e_shoff = self.obj.read(4)
-        elif size is 64:
+        elif size == 64:
             self.header.e_entry = self.obj.read(8)
             self.header.e_phoff = self.obj.read(8)
             self.header.e_shoff = self.obj.read(8)
@@ -144,7 +143,7 @@ class ELF(object):
     def read_program_header(self, size):
         tmp = PROGRAM_HEADER(0,0,0,0,0,0,0,0,0)
         tmp.p_type = self.obj.read(4)
-        if size is 32:
+        if size == 32:
             tmp.offset = self.obj.read(4)
             tmp.p_vaddr = self.obj.read(4)
             tmp.p_paddr = self.obj.read(4)
@@ -152,7 +151,7 @@ class ELF(object):
             tmp.p_memsz = self.obj.read(4)
             tmp.p_flags32 = self.obj.read(4)
             tmp.p_align = self.obj.read(4)
-        elif size is 64:
+        elif size == 64:
             tmp.p_flags = self.obj.read(4)
             tmp.p_offset = self.obj.read(8)
             tmp.p_vaddr = self.obj.read(8)
@@ -167,7 +166,7 @@ class ELF(object):
         tmp = SECTION_HEADER(0,0,0,0,0,0,0,0,0,0)
         tmp.sh_name = self.obj.read(4)
         tmp.sh_type = self.obj.read(4)
-        if size is 32:
+        if size == 32:
             tmp.sh_flags = self.obj.read(4)
             tmp.sh_addr = self.obj.read(4)
             tmp.sh_offset = self.obj.read(4)
@@ -176,7 +175,7 @@ class ELF(object):
             tmp.sh_info = self.obj.read(4)
             tmp.sh_addralign = self.obj.read(4)
             tmp.sh_entsize = self.obj.read(4)
-        elif size is 64:
+        elif size == 64:
             tmp.sh_flags = self.obj.read(8)
             tmp.sh_addr = self.obj.read(8)
             tmp.sh_offset = self.obj.read(8)
@@ -190,7 +189,7 @@ class ELF(object):
     def read_symtab_entry(self, symtab, entries):
         tmp = SYMTAB_ENTRY64(0,0,0,0,0,0,0,0)
         tmp.st_name = symtab[0:4]
-        tmp.st_info = symtabl[4:5]
+        tmp.st_info = symtab[4:5]
         tmp.st_other = symtab[5:6]
         tmp.st_shndx = symtab[6:8]
         tmp.st_value = symtab[8:16]
@@ -229,7 +228,7 @@ class ELF(object):
     def get_program_header_dynamic_entries(self):
         size = 0
         for program_header in self.program_header:
-            if byte2int(phdr.p_type) == p_type.PT_DYNAMIC:
+            if byte2int(program_header.p_type) == p_type.PT_DYNAMIC:
                 self.obj.seek(byte2int(program_header.p_offset), 0)
                 size = byte2int(program_header.p_filesz)
                 program_header_dyn = self.obj.read(size)
@@ -237,6 +236,33 @@ class ELF(object):
              d_tag = byte2int(program_header_dyn[8*i:8*i+4])
              d_un = byte2int(program_header_dyn[8*i + 4 : 8*i + 8])
              self.ph_dyn_entries.append(program_header_dynamic_entry(d_tag, d_un))
+
+
+    def pop_dynamic_entries(self, section_name, pop_target):
+        for section in self.section_header:
+            name = self.read_section_name(byte2int(section.sh_name))
+            if name == section_name:
+                self.obj.seek(byte2int(section.sh_offset))
+                self.dyn_section = self.obj.read(byte2int(section.sh_size))
+        sec_length = int(len(self.dyn_section))
+        tmp = {}
+        if self.size == 64: 
+            jump_value = 8
+        elif self.size == 32:
+            jump_value = 4
+        else:
+            jump_value = 8
+            print("self.size is not 32/64. Setting default jump value to 8")
+        for offset in range(0, sec_length, jump_value*2):
+            d_tag_type = byte2int(self.dyn_section[offset:offset+jump_value])
+            tmp["dtag"] = d_tag_type
+            value = byte2int(self.dyn_section[offset+jump_value:offset+2*jump_value])
+            tmp["value"] = value
+            tag_type_str = get_program_header_dynamic_entries_d_tag_type(d_tag_type)
+            tmp["tag_type_str"] = tag_type_str
+            # tag_type_str = ""
+            pop_target.append(tmp)
+            # tmp = {}
 
     def pop_rela(self, section_name, section_content, pop_target):
         size = int()
@@ -250,7 +276,7 @@ class ELF(object):
         for section in self.section_header:
             name = self.read_section_name(byte2int(section.sh_name))
             if name == section_name:
-                self.so.seek(byte2int(section.sh_offset))
+                self.obj.seek(byte2int(section.sh_offset))
                 section_content = self.obj.read(byte2int(section.sh_size))
                 size = byte2int(section.sh_size)
                 entsize = byte2int(section.sh_entsize)
